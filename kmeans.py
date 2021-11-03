@@ -8,7 +8,7 @@ cap=cv2.VideoCapture(0)
 _,frame=cap.read()
 height,width,_=frame.shape
 
-
+#Here we define the cordinates of the small scuare based from the frames
 square_size_factor=0.4#fraction of height of image that square occupies
 square_x1=int((width-((square_size_factor)*height))/2)#coordinate calculation for square corners
 square_x2=int((width+((square_size_factor)*height))/2)
@@ -23,12 +23,16 @@ cube_dimension=square_y2-square_y1#height and width of cube in pixels
 
 cube=[]
 
-counter= 1    
+counter= 1
+#Print the order that you should follow for scanning    
 print("g -> r -> b -> o -> y -> w")
 print("F -> R -> B -> L -> U -> D")
 
 def find_avg_hsv(img):#given the cropped image of cube face finds the hsv values of each cybie(or tile) and forms a 3d array of hsv values
-        
+    """Create a new user.
+    Find the avg hsv colors from the small squares located in each subsquare.
+    This calculation allows to only take into account subregions of the cube and that it does not have to be completely centered.
+    """
     tile_dimension=int(cube_dimension/3)#as cube face has 9(3x3) tiles
     tile_factor=0.3#factor of area where colour will be found(tile roi)
     tile_roi_start=int(((1-tile_factor)/2)*tile_dimension)#pixels to start of bounding rectangle of tile roi
@@ -61,9 +65,13 @@ def find_avg_hsv(img):#given the cropped image of cube face finds the hsv values
     return hsv_avg
 
 while True:
+    '''
+    Continues loop that captures frames and calls the respective funtions to build the cube string represantion.
+    Press space to save a new face and s when you are done to save it. To see the steps, close the matplotlib window.
+    '''
     _,frame=cap.read()
     
-    cv2.rectangle(frame, (square_x1, square_y1), (square_x2, square_y2), (255,0,0), 2)#cube should be placed within this square
+    cv2.rectangle(frame, (square_x1, square_y1), (square_x2, square_y2), (0,255,120), 2)#cube should be placed within this square
 
 
     cv2.imshow("original",frame)
@@ -80,13 +88,13 @@ while True:
     elif k==ord('s'):
         cube_colors=find_colors(cube)
         plot_colors(cube_colors)
-        solution = sol(cube_colors)
-        print(solution)
-        #print(cleansolution(solution))
+        solution6 = sol6(cube_colors)
+        print("Using 6 motors: ")
+        print(solution6)
+
     elif k==ord('r'):
         cube.pop()
 
-
-
+#Safely release the video capture
 cap.release()
 cv2.destroyAllWindows()

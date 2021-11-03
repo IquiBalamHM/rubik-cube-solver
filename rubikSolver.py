@@ -10,45 +10,52 @@ import kociemba
 
 
 def replace_values(arr,replace,replacement):
+    '''
+    Replace values in an array given with the provided replacement value, works for single characters.
+    '''
     for i in range(len(arr)):
         if arr[i]==replace:
             arr[i]=replacement
     return arr
 
 
-def sol(input1):
-    input2=[[[]],[[]],[[]],[[]],[[]],[[]]]
-
-    for i in range(6):
-        if(input1[i][1][1]=='w'):
+def sol6(input1):
+    '''
+    Return the actual solution for a given string. 
+    First converts the input from a colored string to a cube string that is accepted by the kociemba algorithm. 
+    '''
+    input2=[[[]],[[]],[[]],[[]],[[]],[[]]]#Initialize the array
+    for i in range(6): 
+        if(input1[i][1][1]=='w'): #Search for the first appearances of w
             input2[0]=input1[i]
             break
 
     for i in range(6):
-        if(input1[i][1][1]=='r'):
+        if(input1[i][1][1]=='r'): #Search for appearances of r
             input2[1]=input1[i]
             break
     
     for i in range(6):
-        if(input1[i][1][1]=='g'):
+        if(input1[i][1][1]=='g'): #search for appearances of g 
             input2[2]=input1[i]
             break
 
     for i in range(6):
-        if(input1[i][1][1]=='y'):
+        if(input1[i][1][1]=='y'): #search for appearances of y
             input2[3]=input1[i]
             break
 
     for i in range(6):
-        if(input1[i][1][1]=='o'):
+        if(input1[i][1][1]=='o'): #search for appearances of o
             input2[4]=input1[i]
             break
 
     for i in range(6):
-        if(input1[i][1][1]=='b'):
+        if(input1[i][1][1]=='b'): #search for appearances of y
             input2[5]=input1[i]
             break
     
+    ##Change those appearances to the needed representation as U, D, R, L, F, B
     for i in range(6):
         for j in range(3):
             for k in range(3):
@@ -69,63 +76,31 @@ def sol(input1):
     	for j in range(3):
     		for k in range(3):
     			b+=input2[i][j][k]
-    
+
+    #Call kociemba algorithm
     a = kociemba.solve(b)
     #print(a)
     return a
 
-def cleansolution(solution):
-    cleanedsolution=""
-    prev=solution[0]
-    for current in solution[1:]:
-        if current=="'":
-            cleanedsolution+=prev.lower()
-        elif current=="2":
-            cleanedsolution+=prev
-            cleanedsolution+=prev
-        else:
-            cleanedsolution+=prev
-        prev=current
-    cleanedsolution+=solution[len(solution)-1]
-    cleanedsolution = cleanedsolution.replace("'", "")
-    cleanedsolution = cleanedsolution.replace("2", "")
-    cleanedsolution = cleanedsolution.replace(" ", "")
-    
-    return cleanedsolution
-
-def create_cost_matrix(mat1,mat2):
-    res = np.eye(6)
-    for r in range(6):
-        for c in range(6):
-            res[r][c] = np.linalg.norm(mat1[r]-mat2[c])
-    #dist = np.linalg.norm(mat1-mat2)
-    return res
-
-def min_cost(mat1,mat2):
-    cost_matrix = create_cost_matrix(mat1,mat2)
-
-    #print(cost_matrix)
-    row_ind, col_ind = linear_sum_assignment(cost_matrix=cost_matrix,
-                                             maximize=False)
-
-    minimum_cost = cost_matrix[row_ind, col_ind].sum()
-    return list(zip(row_ind, col_ind))
 def find_colors(cube):
-    cube=np.array(cube).reshape(-1,3)
-    kmeans=KMeans(n_clusters=6,random_state=0,n_init=1,max_iter=200)
-    kmeans.fit(cube)
+    '''
+    Find the groups of colors in the cube using Kmeans clustering, provided by sklearn.
+    '''
+    cube=np.array(cube).reshape(-1,3)#Reshape the cube to a single line
+    kmeans=KMeans(n_clusters=6,random_state=0,n_init=1,max_iter=200) #Do the grouping
+    kmeans.fit(cube) #Fit the model
     preds=kmeans.labels_
-    preds=preds.tolist()
+    preds=preds.tolist() #Conver prediction to lists
     
-    unique, counts = np.unique(preds, return_counts=True)
+    unique, counts = np.unique(preds, return_counts=True) #Find unique elements
 
-
-    #print(np.asarray((unique, counts)).T)
+    #If we can achieve the 6 different groups each one with 9 colors, then it's a succesful scan
     if(counts.tolist()!=[9]*6):
         print("COLOR SCAN FAILED")
     else:
         print("SCAN SUCCESFULL")
 
+    #Use the predictions and change the labels to colors.
     copypreds = np.copy(preds)
     copypreds2 = np.copy(copypreds)
     copypreds2=np.where(copypreds==copypreds[4],"g",copypreds2)
@@ -135,21 +110,26 @@ def find_colors(cube):
     copypreds2=np.where(copypreds==copypreds[4+9*4],"w",copypreds2)
     copypreds2=np.where(copypreds==copypreds[4+9*5],"y",copypreds2)
     copypreds2=np.array(copypreds2).reshape(6,3,3)
-    #print(copypreds2)
+
     return copypreds2
 
 
 
 def plot_colors(colors):
-    colors=np.where(colors=="r","0",colors)
-    colors=np.where(colors=="b","1",colors)
-    colors=np.where(colors=="o","2",colors)
-    colors=np.where(colors=="g","3",colors)
+    '''
+    Used for visual purposes, print the flat version of the cube using Matplotlib.     
+    '''
+    #Crate labels for each colors
+    colors=np.where(colors=="r","0",colors) #0
+    colors=np.where(colors=="b","1",colors) #1
+    colors=np.where(colors=="o","2",colors) #2
+    colors=np.where(colors=="g","3",colors) #3
     colors=np.where(colors=="w","5",colors) #4
     colors=np.where(colors=="y","4",colors) #5
     colors=colors.astype(int)
-    #print(colors)
+
     N=12
+    #Color the squares
     data = np.ones((N,N)) * np.nan
     data[3:6,3:6]=colors[0]
     data[3:6,6:9]=colors[1]
@@ -175,5 +155,5 @@ def plot_colors(colors):
     ax.imshow(data, interpolation='none', cmap=my_cmap, extent=[0, N, 0, N], zorder=0)
     # turn off the axis labels
     ax.axis('off')
-
+    # show
     plt.show()
